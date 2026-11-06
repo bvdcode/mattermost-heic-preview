@@ -8,7 +8,7 @@ import {usePreviewUrl} from './preview-url';
 
 interface InlineFileProps {
     file: FileInfo;
-    onHeightChange?: () => void;
+    onHeightChange?: (height: number) => void;
 }
 
 function InlineFile({file, onHeightChange}: InlineFileProps): React.ReactElement {
