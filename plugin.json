@@ -1,0 +1,12 @@
+{
+  "id": "com.bvdcode.heic-preview",
+  "name": "HEIC Preview",
+  "description": "Inline HEIC/HEIF previews for existing and new Mattermost attachments using heic-net. No file conversion or extra upload.",
+  "version": "0.3.0",
+  "homepage_url": "https://github.com/bvdcode/mattermost-heic-preview",
+  "support_url": "https://github.com/bvdcode/mattermost-heic-preview/issues",
+  "min_server_version": "11.0.0",
+  "webapp": {
+    "bundle_path": "webapp/dist/main.js"
+  }
+}

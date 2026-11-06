@@ -1,0 +1,8 @@
+node_modules/
+webapp/node_modules/
+webapp/dist/
+public/heic/
+dist/
+notes/
+AGENTS.md
+.DS_Store

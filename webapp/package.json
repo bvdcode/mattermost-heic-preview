@@ -1,0 +1,39 @@
+{
+  "name": "mattermost-heic-preview-webapp",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Mattermost HEIC/HEIF inline preview using heic-net",
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "build": "node ../scripts/copy-assets.cjs && webpack --config webpack.config.cjs --mode production",
+    "lint": "eslint src tests && node ../scripts/lint-guard.cjs",
+    "typecheck": "tsc --noEmit",
+    "test:browser": "node tests/browser.mjs"
+  },
+  "dependencies": {
+    "heic-net": "latest"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@babel/preset-env": "7.29.7",
+    "@babel/preset-react": "7.29.7",
+    "@babel/preset-typescript": "^7.28.0",
+    "@types/node": "^22.15.0",
+    "@types/react": "18.2.64",
+    "@types/react-dom": "18.2.25",
+    "@playwright/test": "^1.58.2",
+    "babel-loader": "10.1.1",
+    "css-loader": "7.1.5",
+    "eslint": "^9.35.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^15.15.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "style-loader": "4.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.40.0",
+    "webpack": "5.112.2",
+    "webpack-cli": "6.0.1"
+  }
+}
