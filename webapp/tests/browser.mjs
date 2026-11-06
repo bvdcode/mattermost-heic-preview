@@ -44,11 +44,12 @@ const pageHtml = `<!doctype html>
 window.registerPlugin = (id, plugin) => { window.registered = {id, plugin}; };
 window.nativePreviewClicks = 0;
 document.querySelector('#original-good .post-image__thumbnail').addEventListener('click', (event) => {event.preventDefault(); window.nativePreviewClicks += 1;});
-window.store = {
-  getState: () => ({entities: {posts:{posts:{post123:{file_ids:['file123','file124'],metadata:{files:[
+const mockState = {entities: {posts:{posts:{post123:{file_ids:['file123','file124'],metadata:{files:[
      {id:'file123',name:'old.heic',extension:'heic'},
      {id:'file124',name:'broken.heic',extension:'heic'},
-  ]}}}}, files:{files:{},fileIdsByPostId:{}}}}),
+  ]}}}}, files:{files:{},fileIdsByPostId:{}}}};
+window.store = {
+  getState: () => mockState,
   subscribe: () => () => {},
 };
 </script>
