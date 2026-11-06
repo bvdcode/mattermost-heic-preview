@@ -1,0 +1,62 @@
+name: Build Mattermost HEIC plugin
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        working-directory: webapp
+        run: npm install --no-audit --no-fund
+      - name: Lint
+        working-directory: webapp
+        run: npm run lint
+      - name: Type-check
+        working-directory: webapp
+        run: npm run typecheck
+      - name: Unit tests
+        working-directory: webapp
+        run: npm test
+      - name: Build webapp and copy WASM assets
+        working-directory: webapp
+        run: npm run build
+      - name: Install Chromium
+        working-directory: webapp
+        run: npx playwright install --with-deps chromium
+      - name: Real browser HEIC decoder integration test
+        working-directory: webapp
+        run: npm run test:browser
+      - name: Create Mattermost archive
+        env:
+          PLUGIN_VERSION: 0.3.${{ github.run_number }}
+        run: node scripts/bundle.cjs
+      - name: Verify plugin archive
+        run: node scripts/verify-bundle.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mattermost-heic-preview-installable
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 90
+      - name: Publish tested build to Releases
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.3.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          files: dist/*.tar.gz
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            Automated build that passed lint, typecheck, unit tests,
+            Chromium HEIC/WASM decode, and plugin archive verification.
+            Installation on a real Mattermost server remains to be tested.

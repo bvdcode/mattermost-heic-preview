@@ -1,0 +1,47 @@
+name: Tagged release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        working-directory: webapp
+        run: npm install --no-audit --no-fund
+      - name: Lint
+        working-directory: webapp
+        run: npm run lint
+      - name: Type-check
+        working-directory: webapp
+        run: npm run typecheck
+      - name: Unit tests
+        working-directory: webapp
+        run: npm test
+      - name: Build
+        working-directory: webapp
+        run: npm run build
+      - name: Install Chromium
+        working-directory: webapp
+        run: npx playwright install --with-deps chromium
+      - name: Browser integration
+        working-directory: webapp
+        run: npm run test:browser
+      - name: Bundle tag version
+        env:
+          PLUGIN_VERSION: ${{ github.ref_name }}
+        run: PLUGIN_VERSION="${PLUGIN_VERSION#v}" node scripts/bundle.cjs
+      - name: Verify archive
+        run: node scripts/verify-bundle.cjs
+      - name: Attach plugin to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.tar.gz
+          prerelease: true
+          generate_release_notes: true
