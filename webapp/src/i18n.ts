@@ -2,12 +2,10 @@ const messages = {
     en: {
         loading: 'Decoding HEIC image…',
         failed: 'This HEIC image could not be previewed.',
-        download: 'Download original HEIC',
     },
     ru: {
         loading: 'Обрабатывается изображение HEIC…',
         failed: 'Не удалось показать изображение HEIC.',
-        download: 'Скачать исходный HEIC',
     },
 };
 

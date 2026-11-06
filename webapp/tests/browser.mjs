@@ -76,9 +76,9 @@ const server = createServer(async (req, res) => {
     if (requested === '/react.js') return respondFile(res, resolve(reactRoot, 'react/umd/react.production.min.js'),'text/javascript');
     if (requested === '/react-dom.js') return respondFile(res, resolve(reactRoot, 'react-dom/umd/react-dom.production.min.js'),'text/javascript');
     if (requested === '/static/plugins/com.bvdcode.heic-preview/main.js') return respondFile(res, builtBundle, 'text/javascript');
-    if (requested === '/api/v4/files/file123' || requested === '/api/v4/files/file124') {
+    if (['/api/v4/files/file123', '/api/v4/files/file124', '/api/v4/files/file125'].includes(requested)) {
         downloads++;
-        const buffer = requested.endsWith('file123')? fixture : badFixture;
+        const buffer = requested.endsWith('file124')? badFixture : fixture;
         res.writeHead(200, {'Content-Type':'application/octet-stream','Content-Length':buffer.length}).end(buffer);return;
     }
     const prefix='/plugins/com.bvdcode.heic-preview/public/heic/';
@@ -110,15 +110,42 @@ try {
     await page.locator('.bvd-heic-inline__link').first().click();
     assert.equal(await page.evaluate(() => window.nativePreviewClicks), 1, 'the inline preview should use Mattermost native modal');
     await page.evaluate(() => {
-        const root = window.ReactDOM.createRoot(document.getElementById('modal-slot'));
-        root.render(window.React.createElement(window.registeredHooks.preview, {fileInfo: {id:'file123',name:'old.heic',extension:'heic'}}));
+        window.modalRoot = window.ReactDOM.createRoot(document.getElementById('modal-slot'));
+        window.modalRoot.render(window.React.createElement(window.registeredHooks.preview, {fileInfo: {id:'file123',name:'old.heic',extension:'heic'}}));
     });
     await page.locator('#modal-slot img[alt="old.heic"]').waitFor({state:'visible',timeout:60000});
-    assert(await page.locator('#modal-slot a[download="old.heic"]').count() === 1);
+    assert.equal(await page.locator('#modal-slot a').count(), 0, 'the preview must not duplicate the native download control');
+    let releaseDownload;
+    const pendingDownload = new Promise((resolveDownload) => {releaseDownload = resolveDownload;});
+    await page.route('**/api/v4/files/file125', async (route) => {
+        await pendingDownload;
+        await route.continue();
+    });
+    const renderPreview = async (id, name) => {
+        await page.evaluate(({id, name}) => {
+            window.modalRoot.render(window.React.createElement(window.registeredHooks.preview, {fileInfo: {id, name, extension:'heic'}}));
+        }, {id, name});
+    };
+    await renderPreview('file125', 'pending.heic');
+    await page.locator('#modal-slot [role="status"]').waitFor({state:'visible'});
+    assert.equal(await page.locator('#modal-slot a').count(), 0, 'loading must not show a download control');
+    releaseDownload();
+    await page.locator('#modal-slot img[alt="pending.heic"]').waitFor({state:'visible',timeout:60000});
+    assert.equal(await page.locator('#modal-slot a').count(), 0);
+    await renderPreview('file124', 'broken.heic');
+    await page.locator('#modal-slot [role="alert"]').waitFor({state:'visible',timeout:60000});
+    assert.equal(await page.locator('#modal-slot a').count(), 0, 'failed previews must not show a download control');
+    assert.equal(await page.locator('#original-bad a[download="broken.heic"]').isVisible(), true, 'the native download must remain available');
+    await page.evaluate(() => window.modalRoot.render(null));
+    await page.locator('#modal-slot .bvd-heic-modal').waitFor({state:'detached'});
+    await renderPreview('file123', 'old.heic');
+    await page.locator('#modal-slot img[alt="old.heic"]').waitFor({state:'visible',timeout:60000});
+    assert.equal(await page.locator('#modal-slot a').count(), 0, 'reopening must not restore a download control');
+    assert.equal(await page.locator('#original-good a[download="old.heic"]').getAttribute('href'), '/api/v4/files/file123');
     assert.equal(uploads,0,'the plugin must never create a new JPEG attachment');
     assert(downloads>0,'decoder must download original protected file bytes');
     assert.deepEqual(errors,[]);
-    process.stdout.write('Verified HEIC WebAssembly decode, inline preview, native click, unchanged corrupt attachment and original download.\n');
+    process.stdout.write('Verified HEIC decode, inline preview, native click and downloads, and no duplicate download control in loading, ready, failed or reopened previews.\n');
 } finally {
     await page.close();
     await browser.close();
