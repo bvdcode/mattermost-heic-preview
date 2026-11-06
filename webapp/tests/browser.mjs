@@ -9,7 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {chromium} from '@playwright/test';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
-const root = resolve(here, '..', '..');
+const root = resolve(here, '..');
 const repoRoot = resolve(root, '..');
 const builtBundle = resolve(root, 'dist/main.js');
 const runtimeRoot = resolve(repoRoot, 'public/heic');
@@ -63,7 +63,7 @@ try {
   };
   window.registered.plugin.initialize(registry, window.store);
   window.registeredHooks = registered;
-  window.ReactDOM.createRoot(document.getElementById('plugin-slot')).render(window.React.createElement(registered.post,{postId:'post123'}));
+  window.ReactDOM.createRoot(document.getElementById('plugin-slot')).render(window.React.createElement(registered.post,{postId:'post123',onHeightChange:(height)=>{window.notifiedHeight=height;}}));
   document.documentElement.dataset.ready = 'yes';
 } catch (e) {
   document.documentElement.dataset.error = String(e.stack || e);
@@ -106,6 +106,7 @@ try {
     await page.locator('img[alt="old.heic"]').waitFor({state:'visible',timeout:60000});
     assert.equal(await page.locator('#original-good').evaluate(e=>e.classList.contains('bvd-heic-native-hidden')),true);
     assert.equal(await page.locator('#original-bad').evaluate(e=>e.classList.contains('bvd-heic-native-hidden')),false);
+    assert.equal(await page.evaluate(()=>window.notifiedHeight),1,'the host needs a positive height to recalculate the post layout');
     await page.locator('.bvd-heic-inline__link').first().click();
     assert.equal(await page.evaluate(() => window.nativePreviewClicks), 1, 'the inline preview should use Mattermost native modal');
     await page.evaluate(() => {

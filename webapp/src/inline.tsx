@@ -37,10 +37,10 @@ function InlineFile({file, onHeightChange}: InlineFileProps): React.ReactElement
             return;
         }
         const restore = hideNativeCard(node, file);
-        onHeightChange?.();
+        onHeightChange?.(1);
         return () => {
             restore();
-            onHeightChange?.();
+            onHeightChange?.(1);
         };
     }, [file.id, onHeightChange, preview.status]);
 

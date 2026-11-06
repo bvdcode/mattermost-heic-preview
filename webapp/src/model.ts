@@ -31,7 +31,7 @@ export interface MattermostStore {
 
 export interface PostAttachmentProps {
     postId: string;
-    onHeightChange?: () => void;
+    onHeightChange?: (height: number) => void;
 }
 
 export interface FilePreviewProps {
