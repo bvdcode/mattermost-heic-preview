@@ -31,7 +31,7 @@ jobs:
         run: npm run build
       - name: Install Chromium
         working-directory: webapp
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium --only-shell
       - name: Real browser HEIC decoder integration test
         working-directory: webapp
         run: npm run test:browser

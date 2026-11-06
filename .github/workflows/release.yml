@@ -29,7 +29,7 @@ jobs:
         run: npm run build
       - name: Install Chromium
         working-directory: webapp
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium --only-shell
       - name: Browser integration
         working-directory: webapp
         run: npm run test:browser
